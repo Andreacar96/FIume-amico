@@ -9,7 +9,15 @@ export type ChartSeries = {
   values: (number | null)[];
 };
 
-export function buildTemperatureSeries(readings: TemperatureReading[], maxSeries = 4): ChartSeries[] {
+function readingCount(months: number[][]) {
+  return months.reduce((sum, m) => sum + m.length, 0);
+}
+
+export function buildTemperatureSeries(
+  readings: TemperatureReading[],
+  options?: { only?: string[]; maxSeries?: number },
+): ChartSeries[] {
+  const maxSeries = options?.maxSeries ?? 4;
   const byBody = new Map<string, number[][]>();
 
   for (const r of readings) {
@@ -20,15 +28,22 @@ export function buildTemperatureSeries(readings: TemperatureReading[], maxSeries
     byBody.get(r.water_body_name)![month].push(r.temperature_celsius);
   }
 
-  const ranked = [...byBody.entries()].sort((a, b) => {
-    const countA = a[1].reduce((sum, m) => sum + m.length, 0);
-    const countB = b[1].reduce((sum, m) => sum + m.length, 0);
-    return countB - countA;
-  });
+  const only = options?.only?.filter((name) => byBody.has(name)) ?? [];
+  const names =
+    only.length > 0
+      ? only
+      : [...byBody.entries()]
+          .sort((a, b) => readingCount(b[1]) - readingCount(a[1]))
+          .slice(0, maxSeries)
+          .map(([name]) => name);
 
-  return ranked.slice(0, maxSeries).map(([name, months], i) => ({
+  return names.map((name, i) => ({
     name,
     color: SERIES_COLORS[i % SERIES_COLORS.length],
-    values: months.map((vals) => (vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null)),
+    values: byBody.get(name)!.map((vals) => (vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null)),
   }));
+}
+
+export function distinctWaterBodies(readings: TemperatureReading[]): string[] {
+  return [...new Set(readings.map((r) => r.water_body_name))].sort((a, b) => a.localeCompare(b, "it"));
 }

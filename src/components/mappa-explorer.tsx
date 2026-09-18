@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { Card, Tag } from "@/components/ui";
+import { SpotDetailModal } from "@/components/spot-detail-modal";
 import type { Spot } from "@/lib/types/database";
 
 // Rough bounding box for continental Italy, used only for the placeholder
@@ -131,14 +131,20 @@ function PlaceholderMap({
 
 export function MappaExplorer({ spots }: { spots: Spot[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [modalSpot, setModalSpot] = useState<Spot | null>(null);
+
+  function openSpot(id: string) {
+    setSelectedId(id);
+    setModalSpot(spots.find((s) => s.id === id) ?? null);
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-7 items-start">
       <Card className="p-2.5">
         {apiKey ? (
-          <GoogleMap spots={spots} selectedId={selectedId} onSelect={setSelectedId} />
+          <GoogleMap spots={spots} selectedId={selectedId} onSelect={openSpot} />
         ) : (
-          <PlaceholderMap spots={spots} selectedId={selectedId} onSelect={setSelectedId} />
+          <PlaceholderMap spots={spots} selectedId={selectedId} onSelect={openSpot} />
         )}
         <div className="flex gap-4 mt-2.5 text-[0.82rem] text-text-muted flex-wrap px-1 pb-1">
           <span>
@@ -166,20 +172,13 @@ export function MappaExplorer({ spots }: { spots: Spot[] }) {
           return (
             <div
               key={s.id}
-              onClick={() => setSelectedId(selected ? null : s.id)}
+              onClick={() => openSpot(s.id)}
               className={`bg-surface border border-border px-4.5 py-4 mb-3 rounded-sm border-l-[3px] cursor-pointer ${
                 selected ? "border-l-accent bg-surface-2" : "border-l-primary-light"
               }`}
             >
-              <h3 className="text-base">
-                <Link href={`/mappa/${s.id}`} className="hover:text-primary">
-                  {s.name}
-                </Link>
-              </h3>
+              <h3 className="text-base">{s.name}</h3>
               <div className="text-[0.85rem] text-text-muted mt-1">{s.water_body_name}</div>
-              {selected && s.description && (
-                <p className="text-sm mt-2">{s.description}</p>
-              )}
               <div className="flex gap-1.5 mt-2.5 flex-wrap">
                 {!s.is_mapped_river && <Tag>torrente non mappato</Tag>}
               </div>
@@ -187,6 +186,8 @@ export function MappaExplorer({ spots }: { spots: Spot[] }) {
           );
         })}
       </div>
+
+      {modalSpot && <SpotDetailModal spot={modalSpot} onClose={() => setModalSpot(null)} />}
     </div>
   );
 }

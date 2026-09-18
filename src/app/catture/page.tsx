@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { SectionHead, Card } from "@/components/ui";
 import { AddCatchButton } from "@/components/add-catch-button";
+import { CatchFilters } from "@/components/catch-filters";
 
 function FishIcon() {
   return (
@@ -16,18 +17,25 @@ function FishIcon() {
   );
 }
 
-export default async function CatturePage() {
+export default async function CatturePage({ searchParams }: PageProps<"/catture">) {
+  const params = await searchParams;
+  const speciesFilter = typeof params.species === "string" ? params.species : "";
+  const sort = params.sort === "oldest" ? "oldest" : "recent";
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let catchesQuery = supabase
+    .from("catches")
+    .select("*, fish_species(name), profiles(username), spots(name)")
+    .order("caught_at", { ascending: sort === "oldest" })
+    .limit(60);
+  if (speciesFilter) catchesQuery = catchesQuery.eq("species_id", Number(speciesFilter));
+
   const [{ data: catches }, { data: species }, { data: spots }] = await Promise.all([
-    supabase
-      .from("catches")
-      .select("*, fish_species(name), profiles(username), spots(name)")
-      .order("caught_at", { ascending: false })
-      .limit(60),
+    catchesQuery,
     supabase.from("fish_species").select("*").order("name"),
     supabase.from("spots").select("*").order("name"),
   ]);
@@ -39,6 +47,7 @@ export default async function CatturePage() {
         description="Le ultime segnalazioni di pesca dei membri."
         action={<AddCatchButton loggedIn={!!user} species={species ?? []} spots={spots ?? []} />}
       />
+      <CatchFilters species={species ?? []} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {(catches ?? []).map((c) => (
           <Card key={c.id} className="overflow-hidden">
@@ -67,7 +76,11 @@ export default async function CatturePage() {
           </Card>
         ))}
         {(catches ?? []).length === 0 && (
-          <p className="text-text-muted text-sm">Nessuna cattura registrata ancora.</p>
+          <p className="text-text-muted text-sm">
+            {speciesFilter
+              ? "Nessuna cattura trovata per questa specie."
+              : "Nessuna cattura registrata ancora."}
+          </p>
         )}
       </div>
     </div>

@@ -86,8 +86,8 @@ export function Textarea({ className = "", ...props }: ComponentProps<"textarea"
   return <textarea className={`${inputClass} min-h-16 resize-y ${className}`} {...props} />;
 }
 
-export function Select(props: ComponentProps<"select">) {
-  return <select className={inputClass} {...props} />;
+export function Select({ className = "", ...props }: ComponentProps<"select">) {
+  return <select className={`${inputClass} ${className}`} {...props} />;
 }
 
 export function Card({

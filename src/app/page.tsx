@@ -6,18 +6,22 @@ const features = [
   {
     title: "Segnala uno spot",
     meta: "Su fiumi mappati o su torrenti che non trovi su nessuna mappa.",
+    href: "/mappa",
   },
   {
     title: "Registra una cattura",
     meta: "Specie, peso, lunghezza e una foto per ogni pesce che tiri fuori.",
+    href: "/catture",
   },
   {
     title: "Monitora la temperatura",
     meta: "Segui l'andamento dell'acqua nei tuoi spot durante l'anno.",
+    href: "/temperature",
   },
   {
     title: "Confrontati",
     meta: "Blog con articoli tecnici e forum per parlare con la community.",
+    href: "/forum",
   },
 ];
 
@@ -96,10 +100,12 @@ export default async function Home() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map((f) => (
-            <Card key={f.title} className="p-4">
-              <h3 className="text-base mb-1">{f.title}</h3>
-              <p className="text-sm text-text-muted">{f.meta}</p>
-            </Card>
+            <Link key={f.title} href={f.href} className="block h-full">
+              <Card className="p-4 h-full hover:border-primary transition-colors">
+                <h3 className="text-base mb-1">{f.title}</h3>
+                <p className="text-sm text-text-muted">{f.meta}</p>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
