@@ -23,7 +23,7 @@ npm install
 
 ### 3. Applica lo schema del database
 
-La migration in `supabase/migrations/20260917000000_init.sql` crea tutte le tabelle, le policy RLS, i bucket di storage e i dati di riferimento (specie ittiche).
+Le migration in `supabase/migrations/` creano tutte le tabelle, le policy RLS, i bucket di storage e i dati di riferimento (specie ittiche). Vanno applicate **in ordine** (per data nel nome del file).
 
 Con la [Supabase CLI](https://supabase.com/docs/guides/cli):
 
@@ -32,7 +32,7 @@ supabase link --project-ref <project-ref>
 supabase db push
 ```
 
-In alternativa, incolla il contenuto del file nel **SQL Editor** del progetto Supabase ed eseguilo.
+In alternativa, incolla il contenuto di ciascun file nel **SQL Editor** del progetto Supabase ed eseguilo, iniziando da `20260917000000_init.sql` e poi `20260918000000_fix_role_guard.sql`.
 
 ### 4. Configura le variabili d'ambiente
 
